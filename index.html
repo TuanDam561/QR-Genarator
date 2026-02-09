@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tạo mã QR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px;
+      }
+
+      .container {
+        background: #fff;
+        padding: 24px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 360px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        font-size: 15px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 12px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        font-size: 15px;
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+        background: #0d6efd;
+        color: white;
+        margin-bottom: 10px;
+      }
+
+      button:last-child {
+        margin-bottom: 0;
+      }
+
+      button:hover {
+        background: #0b5ed7;
+      }
+
+      #qrcode {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+      }
+
+      #qrcode img,
+      #qrcode canvas {
+        width: 220px;
+        height: 220px;
+      }
+
+      /* 📱 Mobile nhỏ hơn */
+      @media (max-width: 480px) {
+        #qrcode img,
+        #qrcode canvas {
+          width: 200px;
+          height: 200px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h3>Tạo mã QR</h3>
+
+      <input type="text" id="qrText" placeholder="Nhập link hoặc nội dung..." />
+
+      <button onclick="generateQR()">Tạo QR</button>
+      <button onclick="downloadQR()">Tải QR</button>
+
+      <div id="qrcode"></div>
+    </div>
+
+    <script>
+      let qr;
+
+      function generateQR() {
+        const text = document.getElementById("qrText").value.trim();
+        const qrContainer = document.getElementById("qrcode");
+
+        if (!text) {
+          alert("Vui lòng nhập nội dung!");
+          return;
+        }
+
+        qrContainer.innerHTML = "";
+
+        qr = new QRCode(qrContainer, {
+          text: text,
+          width: 220,
+          height: 220,
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      }
+
+      function downloadQR() {
+        const img = document.querySelector("#qrcode img");
+        if (!img) {
+          alert("Chưa có QR để tải!");
+          return;
+        }
+
+        const link = document.createElement("a");
+        link.href = img.src;
+        link.download = "qrcode.png";
+        link.click();
+      }
+    </script>
+  </body>
+</html>
