@@ -124,15 +124,51 @@
 
       function downloadQR() {
         const img = document.querySelector("#qrcode img");
-        if (!img) {
+        const canvas = document.querySelector("#qrcode canvas");
+
+        if (!img && !canvas) {
           alert("Chưa có QR để tải!");
           return;
         }
 
-        const link = document.createElement("a");
-        link.href = img.src;
-        link.download = "qrcode.png";
-        link.click();
+        // tạo canvas mới để thêm nền trắng
+        const newCanvas = document.createElement("canvas");
+        const ctx = newCanvas.getContext("2d");
+
+        const size = 260; // kích thước tổng (có padding)
+        const padding = 20; // khoảng trắng xung quanh QR
+
+        newCanvas.width = size;
+        newCanvas.height = size;
+
+        // 🟦 vẽ nền trắng
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, size, size);
+
+        // tạo image để vẽ lại QR
+        const qrImage = new Image();
+
+        qrImage.onload = function () {
+          ctx.drawImage(
+            qrImage,
+            padding,
+            padding,
+            size - padding * 2,
+            size - padding * 2,
+          );
+
+          const link = document.createElement("a");
+          link.href = newCanvas.toDataURL("image/png");
+          link.download = "qrcode.png";
+          link.click();
+        };
+
+        // lấy source từ img hoặc canvas
+        if (img) {
+          qrImage.src = img.src;
+        } else {
+          qrImage.src = canvas.toDataURL("image/png");
+        }
       }
     </script>
   </body>
