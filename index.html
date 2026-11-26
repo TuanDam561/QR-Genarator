@@ -13,9 +13,12 @@
 <body>
   <main class="container">
     <header><h1>Tạo & quét mã QR</h1><p>Đổi link thành QR, đọc QR thành link.</p></header>
+    <div class="tabs" role="tablist" aria-label="Chức năng QR">
+      <button type="button" id="createTab" role="tab" aria-selected="true" aria-controls="createPanel">Tạo mã QR</button>
+      <button type="button" id="scanTab" role="tab" aria-selected="false" aria-controls="scanPanel" tabindex="-1">Quét QR từ ảnh</button>
+    </div>
     <div class="panels">
-      <section class="panel" aria-labelledby="createHeading">
-        <h2 id="createHeading">Tạo mã QR</h2>
+      <section class="panel" id="createPanel" role="tabpanel" aria-labelledby="createTab" tabindex="0">
         <form id="createForm">
           <label for="qrText">Link hoặc nội dung</label>
           <input type="text" id="qrText" placeholder="https://example.com" required />
@@ -25,20 +28,24 @@
         <button type="button" id="downloadButton" class="secondary" disabled>Tải QR xuống (PNG)</button>
         <p id="createStatus" class="status" role="status"></p>
       </section>
-      <section class="panel" id="scanPanel" aria-labelledby="scanHeading">
-        <h2 id="scanHeading">Quét QR từ ảnh</h2>
-        <div id="dropZone" class="drop-zone">
-          <label for="qrFile">Chọn ảnh có mã QR</label>
-          <input type="file" id="qrFile" accept="image/*" aria-describedby="uploadHelp" />
-          <p id="uploadHelp">Hoặc kéo thả ảnh vào đây, nhấn Ctrl + V / ⌘ + V để dán ảnh.</p>
-          <button type="button" id="pasteButton" class="secondary">Dán ảnh từ bộ nhớ tạm</button>
+      <section class="panel" id="scanPanel" role="tabpanel" aria-labelledby="scanTab" tabindex="0" hidden>
+        <div class="scan-layout">
+          <div id="dropZone" class="drop-zone">
+            <label for="qrFile">Chọn ảnh có mã QR</label>
+            <input type="file" id="qrFile" accept="image/*" aria-describedby="uploadHelp" />
+            <p id="uploadHelp">Hoặc kéo thả ảnh vào đây, nhấn Ctrl + V / ⌘ + V để dán ảnh.</p>
+            <button type="button" id="pasteButton" class="secondary">Dán ảnh từ bộ nhớ tạm</button>
+          </div>
+          <div class="preview-pane">
+            <img id="scanPreview" alt="Ảnh QR bạn vừa chọn" hidden />
+            <p class="preview-placeholder">Ảnh QR sẽ hiện ở đây</p>
+          </div>
         </div>
         <p class="hint">Ảnh được đọc ngay trên thiết bị, không tải lên máy chủ. Tối đa 20 MB / ảnh.</p>
         <p id="scanStatus" class="status" role="status" aria-live="polite"></p>
-        <img id="scanPreview" alt="Ảnh QR bạn vừa chọn" hidden />
         <div id="scanResult" hidden>
           <label for="resultText">Nội dung trong QR</label>
-          <textarea id="resultText" rows="3" readonly spellcheck="false"></textarea>
+          <textarea id="resultText" rows="2" readonly spellcheck="false"></textarea>
           <div class="actions">
             <button type="button" id="copyButton" class="secondary">Sao chép</button>
             <a id="openLink" class="button" target="_blank" rel="noopener noreferrer" hidden>Mở link</a>

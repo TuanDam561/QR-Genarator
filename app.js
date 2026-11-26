@@ -4,6 +4,32 @@ const $ = (id) => document.getElementById(id);
 let scanVersion = 0;
 let previewUrl;
 
+const tabs = [$("createTab"), $("scanTab")];
+
+function selectTab(selectedTab, focus = false) {
+  for (const tab of tabs) {
+    const selected = tab === selectedTab;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    $(tab.getAttribute("aria-controls")).hidden = !selected;
+  }
+  if (focus) selectedTab.focus();
+}
+
+tabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => selectTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    let nextIndex;
+    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    if (event.key === "ArrowLeft") nextIndex = (index + tabs.length - 1) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    selectTab(tabs[nextIndex], true);
+  });
+});
+
 function setStatus(id, message, error = false) {
   $(id).textContent = message;
   $(id).classList.toggle("error", error);
@@ -81,6 +107,8 @@ function showResult(text) {
 }
 
 async function scanFile(file) {
+  // Pasting an image also reveals the scanner when the create tab is active.
+  selectTab($("scanTab"));
   const version = resetScan();
   if (!file || !file.type.startsWith("image/")) {
     setStatus("scanStatus", "Vui lòng chọn một tệp ảnh có mã QR (PNG, JPG, WebP…).", true);
