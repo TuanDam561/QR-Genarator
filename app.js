@@ -4,7 +4,7 @@ const $ = (id) => document.getElementById(id);
 let scanVersion = 0;
 let previewUrl;
 
-const tabs = [$("createTab"), $("scanTab")];
+const tabs = [$("createTab"), $("batchTab"), $("scanTab")];
 
 function selectTab(selectedTab, focus = false) {
   for (const tab of tabs) {
@@ -234,5 +234,145 @@ $("copyButton").addEventListener("click", async () => {
     $("resultText").focus();
     $("resultText").select();
     setStatus("scanStatus", "Hãy nhấn Ctrl + C / ⌘ + C hoặc giữ vào nội dung để sao chép.");
+  }
+});
+
+let batchEntries = [];
+let batchBusy = false;
+
+function batchSummary(parsed) {
+  const details = [`${parsed.links.length} link hợp lệ`];
+  if (parsed.duplicates) details.push(`bỏ ${parsed.duplicates} link trùng`);
+  if (parsed.invalid) details.push(`bỏ ${parsed.invalid} link không hợp lệ`);
+  return details.join(" · ");
+}
+
+$("batchText").addEventListener("input", () => {
+  const parsed = QRBatch.parseLinks($("batchText").value);
+  $("batchCount").textContent = batchSummary(parsed);
+  batchEntries = [];
+  $("batchResults").replaceChildren();
+  $("batchResultHeader").hidden = true;
+  $("batchDownloadButton").disabled = true;
+  setStatus("batchStatus", "");
+});
+
+function setBatchBusy(busy) {
+  batchBusy = busy;
+  $("batchText").readOnly = busy;
+  $("batchCreateButton").disabled = busy;
+  $("batchDownloadButton").disabled = busy || !batchEntries.length;
+  $("batchForm").setAttribute("aria-busy", String(busy));
+}
+
+function batchPng(link) {
+  const holder = document.createElement("div");
+  new QRCode(holder, { text: link, width: 256, height: 256, correctLevel: QRCode.CorrectLevel.H });
+  const source = holder.querySelector("canvas");
+  if (!source) throw new Error("No QR canvas");
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 304;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#fff";
+  context.fillRect(0, 0, 304, 304);
+  context.drawImage(source, 24, 24);
+  return canvas.toDataURL("image/png");
+}
+
+$("batchForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (batchBusy) return;
+  const parsed = QRBatch.parseLinks($("batchText").value);
+  $("batchCount").textContent = batchSummary(parsed);
+  if (!parsed.links.length) {
+    setStatus("batchStatus", "Chưa tìm thấy link. Hãy dán link bắt đầu bằng https://, http:// hoặc www.", true);
+    return;
+  }
+  if (parsed.links.length > QRBatch.maxLinks) {
+    setStatus("batchStatus", `Có ${parsed.links.length} link. Hãy chia thành các nhóm tối đa ${QRBatch.maxLinks} link rồi tạo lại.`, true);
+    return;
+  }
+  if (typeof QRCode !== "function") {
+    setStatus("batchStatus", "Không tải được thư viện tạo QR. Vui lòng tải lại trang.", true);
+    return;
+  }
+  batchEntries = [];
+  $("batchResults").replaceChildren();
+  $("batchResultHeader").hidden = true;
+  setBatchBusy(true);
+  let failed = 0;
+  try {
+    for (const [index, link] of parsed.links.entries()) {
+      setStatus("batchStatus", `Đang tạo QR ${index + 1}/${parsed.links.length}…`);
+      // Yield between codes so the page stays interactive during a large batch.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const card = document.createElement("article");
+      card.className = "batch-card";
+      const heading = document.createElement("h4");
+      heading.textContent = `QR ${String(index + 1).padStart(2, "0")}`;
+      const urlText = document.createElement("p");
+      urlText.className = "batch-url";
+      urlText.textContent = link;
+      urlText.title = link;
+      card.append(heading);
+      try {
+        const dataUrl = batchPng(link);
+        const filename = QRBatch.filename(link, index);
+        const img = document.createElement("img");
+        img.src = dataUrl;
+        img.alt = `Mã QR ${index + 1} cho ${link}`;
+        const download = document.createElement("a");
+        download.className = "button secondary";
+        download.href = dataUrl;
+        download.download = filename;
+        download.textContent = "Tải PNG";
+        card.append(img, urlText, download);
+        batchEntries.push({ link, filename, dataUrl });
+      } catch {
+        failed++;
+        card.classList.add("failed");
+        const error = document.createElement("p");
+        error.className = "status error";
+        error.textContent = "Không tạo được QR cho link này. Hãy thử rút ngắn link.";
+        card.append(urlText, error);
+      }
+      $("batchResults").append(card);
+    }
+    $("batchResultHeader").hidden = false;
+    $("batchResultTitle").textContent = `${batchEntries.length} mã QR đã tạo`;
+    setStatus("batchStatus", `Đã tạo ${batchEntries.length}/${parsed.links.length} mã QR.`
+      + (failed ? ` Có ${failed} link bị lỗi, được đánh dấu bên dưới.` : " Bạn có thể tải từng ảnh hoặc tải tất cả."), failed > 0);
+  } catch {
+    setStatus("batchStatus", "Quá trình tạo bị gián đoạn. Bạn vẫn có thể tải các mã đã tạo hoặc thử lại.", true);
+    $("batchResultHeader").hidden = !batchEntries.length;
+    $("batchResultTitle").textContent = `${batchEntries.length} mã QR đã tạo`;
+  } finally {
+    setBatchBusy(false);
+  }
+});
+
+$("batchDownloadButton").addEventListener("click", async () => {
+  if (batchBusy || !batchEntries.length) return;
+  if (typeof JSZip !== "function") {
+    setStatus("batchStatus", "Chưa tải được thư viện ZIP. Bạn vẫn có thể tải từng PNG hoặc tải lại trang.", true);
+    return;
+  }
+  setBatchBusy(true);
+  setStatus("batchStatus", "Đang đóng gói các ảnh QR…");
+  try {
+    const blob = await QRBatch.createArchive(batchEntries);
+    const objectUrl = URL.createObjectURL(blob);
+    const download = document.createElement("a");
+    download.href = objectUrl;
+    download.download = "qr-codes.zip";
+    document.body.append(download);
+    download.click();
+    download.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+    setStatus("batchStatus", `Đã chuẩn bị file ZIP gồm ${batchEntries.length} ảnh QR và danh sách link.`);
+  } catch {
+    setStatus("batchStatus", "Không tạo được file ZIP. Hãy thử lại hoặc tải từng ảnh PNG.", true);
+  } finally {
+    setBatchBusy(false);
   }
 });

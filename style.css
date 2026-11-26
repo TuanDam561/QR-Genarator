@@ -30,13 +30,13 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .create-controls button { width: 100%; }
 #downloadButton { margin-top: 10px; }
 .create-preview, .preview-pane { display: grid; place-items: center; width: 100%; height: 240px; border: 1px solid #e4eaf3; border-radius: 12px; background: #f8fafc; overflow: hidden; }
-.create-preview { align-self: center; }
+.create-preview { align-self: start; }
 #qrcode { display: flex; justify-content: center; align-items: center; width: 100%; padding: 10px; background: #fff; }
 #qrcode:empty { display: none; }
 #qrcode:not(:empty) + .create-placeholder { display: none; }
 #qrcode img, #qrcode canvas { max-width: 100%; height: auto; }
 .create-placeholder, .preview-placeholder { color: #7b889b; font-size: 13px; text-align: center; padding: 12px; line-height: 1.7; }
-.drop-zone { min-width: 0; min-height: 240px; padding: 18px; border: 1px dashed #b8cbe8; border-radius: 12px; background: #fbfcff; }
+.drop-zone, .input-frame { min-width: 0; min-height: 240px; padding: 18px; border: 1px dashed #b8cbe8; border-radius: 12px; background: #fbfcff; }
 .drop-zone.dragging { border-color: #1769e8; background: #eaf2ff; }
 #pasteButton { width: 100%; }
 #uploadHelp, .hint { color: #64748b; font-size: 12px; line-height: 1.6; }
@@ -50,6 +50,18 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 #scanResult { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e8edf4; }
 .actions { display: flex; gap: 10px; }
 .actions > * { flex: 1; }
+.batch-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.batch-toolbar .hint { margin: 0; }
+.batch-toolbar h3 { margin: 0; font-size: 16px; }
+#batchText { margin-bottom: 0; }
+.batch-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 16px; }
+.batch-results:empty { display: none; }
+.batch-card { min-width: 0; padding: 16px; border: 1px solid #e0e7f0; border-radius: 12px; background: #fff; }
+.batch-card h4 { margin: 0 0 12px; font-size: 14px; color: #64748b; }
+.batch-card img { display: block; width: 100%; max-width: 220px; aspect-ratio: 1; object-fit: contain; margin: 0 auto; }
+.batch-url { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; max-height: 4.5em; overflow-y: auto; margin: 12px 0; }
+.batch-card .button { width: 100%; }
+.batch-card.failed { background: #fffafa; border-color: #f2d4d0; }
 @media (max-width: 640px) {
   body { padding: 22px 12px; }
   header { margin-bottom: 20px; }
@@ -59,7 +71,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .create-preview, .preview-pane { height: 150px; }
   #scanPreview { max-height: 148px; }
   #qrcode img, #qrcode canvas { width: 128px; }
-  .drop-zone { padding: 12px; min-height: 0; }
+  .drop-zone, .input-frame { padding: 12px; min-height: 0; }
 }
 @media (max-width: 420px) {
   .tabs { gap: 4px; padding: 8px; }
