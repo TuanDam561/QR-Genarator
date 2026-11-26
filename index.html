@@ -1,94 +1,222 @@
 ﻿<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Tạo, tải và đọc mã QR từ ảnh ngay trên trình duyệt." />
-  <title>Tạo & quét mã QR</title>
-  <link rel="stylesheet" href="./style.css?v=20261126-batch1" />
-  <script defer src="./vendor/qrcode.min.js"></script>
-  <script defer src="./vendor/jsQR.js"></script>
-  <script defer src="./vendor/jszip.min.js"></script>
-  <script defer src="./batch.js?v=20261126-batch1"></script>
-  <script defer src="./app.js?v=20261126-batch1"></script>
-</head>
-<body>
-  <main class="container">
-    <header><h1>Tạo & quét mã QR</h1><p>Đổi link thành QR, đọc QR thành link.</p></header>
-    <div class="workspace">
-    <div class="tabs" role="tablist" aria-label="Chức năng QR">
-      <button type="button" id="createTab" role="tab" aria-selected="true" aria-controls="createPanel">Tạo mã QR</button>
-      <button type="button" id="batchTab" role="tab" aria-selected="false" aria-controls="batchPanel" tabindex="-1">Tạo nhiều QR</button>
-      <button type="button" id="scanTab" role="tab" aria-selected="false" aria-controls="scanPanel" tabindex="-1">Quét QR từ ảnh</button>
-    </div>
-    <div class="panels">
-      <section class="panel" id="createPanel" role="tabpanel" aria-labelledby="createTab" tabindex="0">
-        <h2>Tạo QR của bạn</h2>
-        <p class="section-description">Nhập đường link hoặc nội dung để tạo mã QR.</p>
-        <div class="create-layout">
-          <div class="create-controls input-frame">
-            <form id="createForm">
-              <label for="qrText">Link hoặc nội dung</label>
-              <input type="text" id="qrText" placeholder="https://example.com" required />
-              <button type="submit">Tạo QR</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Tạo, tải và đọc mã QR từ ảnh ngay trên trình duyệt."
+    />
+    <title>Tạo & quét mã QR</title>
+    <link rel="stylesheet" href="./style.css?v=20261126-batch1" />
+    <script defer src="./vendor/qrcode.min.js"></script>
+    <script defer src="./vendor/jsQR.js"></script>
+    <script defer src="./vendor/jszip.min.js"></script>
+    <script defer src="./batch.js?v=20261126-batch1"></script>
+    <script defer src="./app.js?v=20261126-batch1"></script>
+  </head>
+  <body>
+    <main class="container">
+      <!-- <header><h1>Tạo & quét mã QR</h1><p>Đổi link thành QR, đọc QR thành link.</p></header> -->
+      <div class="workspace">
+        <div class="tabs" role="tablist" aria-label="Chức năng QR">
+          <button
+            type="button"
+            id="createTab"
+            role="tab"
+            aria-selected="true"
+            aria-controls="createPanel"
+          >
+            Tạo mã QR
+          </button>
+          <button
+            type="button"
+            id="batchTab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="batchPanel"
+            tabindex="-1"
+          >
+            Tạo nhiều QR
+          </button>
+          <button
+            type="button"
+            id="scanTab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="scanPanel"
+            tabindex="-1"
+          >
+            Quét QR từ ảnh
+          </button>
+        </div>
+        <div class="panels">
+          <section
+            class="panel"
+            id="createPanel"
+            role="tabpanel"
+            aria-labelledby="createTab"
+            tabindex="0"
+          >
+            <h2>Tạo QR của bạn</h2>
+            <p class="section-description">
+              Nhập đường link hoặc nội dung để tạo mã QR.
+            </p>
+            <div class="create-layout">
+              <div class="create-controls input-frame">
+                <form id="createForm">
+                  <label for="qrText">Link hoặc nội dung</label>
+                  <input
+                    type="text"
+                    id="qrText"
+                    placeholder="https://example.com"
+                    required
+                  />
+                  <button type="submit">Tạo QR</button>
+                </form>
+                <button
+                  type="button"
+                  id="downloadButton"
+                  class="secondary"
+                  disabled
+                >
+                  Tải ảnh PNG
+                </button>
+              </div>
+              <div class="create-preview">
+                <div id="qrcode" aria-label="Mã QR đã tạo"></div>
+                <p class="create-placeholder">
+                  Mã QR của bạn<br />sẽ xuất hiện ở đây
+                </p>
+              </div>
+            </div>
+            <p id="createStatus" class="status" role="status"></p>
+          </section>
+          <section
+            class="panel"
+            id="batchPanel"
+            role="tabpanel"
+            aria-labelledby="batchTab"
+            tabindex="0"
+            hidden
+          >
+            <h2>Nhiều link, nhiều mã QR</h2>
+            <p class="section-description">
+              Dán danh sách link, mỗi link sẽ có một mã QR riêng.
+            </p>
+            <form id="batchForm" class="input-frame">
+              <label for="batchText">Danh sách đường link</label>
+              <textarea
+                id="batchText"
+                rows="5"
+                spellcheck="false"
+                aria-describedby="batchHelp batchCount"
+                placeholder="https://example.com/trang-1&#10;https://example.com/trang-2&#10;www.example.org"
+                required
+                maxlength="200000"
+              ></textarea>
+              <p id="batchHelp" class="hint">
+                Tự tách link có http://, https:// hoặc www. khi xuống dòng, cách
+                nhau bằng khoảng trắng, dấu phẩy hoặc chấm phẩy. Tự bỏ link
+                trùng. Tối đa 100 link / lần.
+              </p>
+              <div class="batch-toolbar">
+                <p id="batchCount" class="hint" role="status">
+                  Chưa có link nào.
+                </p>
+                <button type="submit" id="batchCreateButton">
+                  Tạo các mã QR
+                </button>
+              </div>
             </form>
-            <button type="button" id="downloadButton" class="secondary" disabled>Tải ảnh PNG</button>
-          </div>
-          <div class="create-preview">
-            <div id="qrcode" aria-label="Mã QR đã tạo"></div>
-            <p class="create-placeholder">Mã QR của bạn<br />sẽ xuất hiện ở đây</p>
-          </div>
+            <p
+              id="batchStatus"
+              class="status"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div id="batchResultHeader" class="batch-toolbar" hidden>
+              <h3 id="batchResultTitle">QR đã tạo</h3>
+              <button
+                type="button"
+                id="batchDownloadButton"
+                class="secondary"
+                disabled
+              >
+                Tải tất cả (.zip)
+              </button>
+            </div>
+            <div id="batchResults" class="batch-results"></div>
+          </section>
+          <section
+            class="panel"
+            id="scanPanel"
+            role="tabpanel"
+            aria-labelledby="scanTab"
+            tabindex="0"
+            hidden
+          >
+            <h2>Đọc QR từ ảnh</h2>
+            <p class="section-description">
+              Chọn hoặc dán ảnh để lấy đường link trong mã QR.
+            </p>
+            <div class="scan-layout">
+              <div id="dropZone" class="drop-zone">
+                <label for="qrFile">Chọn ảnh có mã QR</label>
+                <input
+                  type="file"
+                  id="qrFile"
+                  accept="image/*"
+                  aria-describedby="uploadHelp"
+                />
+                <p id="uploadHelp">
+                  Hoặc kéo thả ảnh vào đây, nhấn Ctrl + V / ⌘ + V để dán ảnh.
+                </p>
+                <button type="button" id="pasteButton" class="secondary">
+                  Dán ảnh từ bộ nhớ tạm
+                </button>
+              </div>
+              <div class="preview-pane">
+                <img id="scanPreview" alt="Ảnh QR bạn vừa chọn" hidden />
+                <p class="preview-placeholder">Ảnh QR sẽ hiện ở đây</p>
+              </div>
+            </div>
+            <p class="hint">
+              Ảnh được đọc ngay trên thiết bị, không tải lên máy chủ. Tối đa 20
+              MB / ảnh.
+            </p>
+            <p
+              id="scanStatus"
+              class="status"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div id="scanResult" hidden>
+              <label for="resultText">Nội dung trong QR</label>
+              <textarea
+                id="resultText"
+                rows="2"
+                readonly
+                spellcheck="false"
+              ></textarea>
+              <div class="actions">
+                <button type="button" id="copyButton" class="secondary">
+                  Sao chép
+                </button>
+                <a
+                  id="openLink"
+                  class="button"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  hidden
+                  >Mở link</a
+                >
+              </div>
+            </div>
+          </section>
         </div>
-        <p id="createStatus" class="status" role="status"></p>
-      </section>
-      <section class="panel" id="batchPanel" role="tabpanel" aria-labelledby="batchTab" tabindex="0" hidden>
-        <h2>Nhiều link, nhiều mã QR</h2>
-        <p class="section-description">Dán danh sách link, mỗi link sẽ có một mã QR riêng.</p>
-        <form id="batchForm" class="input-frame">
-          <label for="batchText">Danh sách đường link</label>
-          <textarea id="batchText" rows="5" spellcheck="false" aria-describedby="batchHelp batchCount" placeholder="https://example.com/trang-1&#10;https://example.com/trang-2&#10;www.example.org" required maxlength="200000"></textarea>
-          <p id="batchHelp" class="hint">Tự tách link có http://, https:// hoặc www. khi xuống dòng, cách nhau bằng khoảng trắng, dấu phẩy hoặc chấm phẩy. Tự bỏ link trùng. Tối đa 100 link / lần.</p>
-          <div class="batch-toolbar">
-            <p id="batchCount" class="hint" role="status">Chưa có link nào.</p>
-            <button type="submit" id="batchCreateButton">Tạo các mã QR</button>
-          </div>
-        </form>
-        <p id="batchStatus" class="status" role="status" aria-live="polite"></p>
-        <div id="batchResultHeader" class="batch-toolbar" hidden>
-          <h3 id="batchResultTitle">QR đã tạo</h3>
-          <button type="button" id="batchDownloadButton" class="secondary" disabled>Tải tất cả (.zip)</button>
-        </div>
-        <div id="batchResults" class="batch-results"></div>
-      </section>
-      <section class="panel" id="scanPanel" role="tabpanel" aria-labelledby="scanTab" tabindex="0" hidden>
-        <h2>Đọc QR từ ảnh</h2>
-        <p class="section-description">Chọn hoặc dán ảnh để lấy đường link trong mã QR.</p>
-        <div class="scan-layout">
-          <div id="dropZone" class="drop-zone">
-            <label for="qrFile">Chọn ảnh có mã QR</label>
-            <input type="file" id="qrFile" accept="image/*" aria-describedby="uploadHelp" />
-            <p id="uploadHelp">Hoặc kéo thả ảnh vào đây, nhấn Ctrl + V / ⌘ + V để dán ảnh.</p>
-            <button type="button" id="pasteButton" class="secondary">Dán ảnh từ bộ nhớ tạm</button>
-          </div>
-          <div class="preview-pane">
-            <img id="scanPreview" alt="Ảnh QR bạn vừa chọn" hidden />
-            <p class="preview-placeholder">Ảnh QR sẽ hiện ở đây</p>
-          </div>
-        </div>
-        <p class="hint">Ảnh được đọc ngay trên thiết bị, không tải lên máy chủ. Tối đa 20 MB / ảnh.</p>
-        <p id="scanStatus" class="status" role="status" aria-live="polite"></p>
-        <div id="scanResult" hidden>
-          <label for="resultText">Nội dung trong QR</label>
-          <textarea id="resultText" rows="2" readonly spellcheck="false"></textarea>
-          <div class="actions">
-            <button type="button" id="copyButton" class="secondary">Sao chép</button>
-            <a id="openLink" class="button" target="_blank" rel="noopener noreferrer" hidden>Mở link</a>
-          </div>
-        </div>
-      </section>
-    </div>
-    </div>
-    <noscript>Vui lòng bật JavaScript để tạo và quét mã QR.</noscript>
-  </main>
-</body>
+      </div>
+      <noscript>Vui lòng bật JavaScript để tạo và quét mã QR.</noscript>
+    </main>
+  </body>
 </html>
